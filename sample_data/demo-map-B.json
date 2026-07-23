@@ -1,0 +1,306 @@
+{
+  "schema": "interoception-hierarchical-network",
+  "schemaVersion": "1.0.0",
+  "appVersion": "0.1.0",
+  "study": {
+    "title": "Hierarchical model of interoception",
+    "participantId": "DEMO-B",
+    "participantGroup": "Clinical interoception",
+    "hierarchyPrompt": "Place components from the highest or most abstract level at the top to the lowest or most peripheral level at the bottom. Use the workshop definition of “hierarchy”; vertical order within a tier is not analysed.",
+    "notes": "Demonstration data only.",
+    "createdAt": "2026-07-16T09:47:25.807Z",
+    "updatedAt": "2026-07-16T09:47:25.807Z"
+  },
+  "sourceFramework": {
+    "id": "suksasilp-garfinkel-2022",
+    "authors": "Suksasilp, C. & Garfinkel, S. N.",
+    "year": 2022,
+    "title": "Towards a comprehensive assessment of interoception in a multi-dimensional framework",
+    "journal": "Biological Psychology",
+    "volume": "168",
+    "article": "108262",
+    "doi": "10.1016/j.biopsycho.2022.108262",
+    "url": "https://doi.org/10.1016/j.biopsycho.2022.108262"
+  },
+  "tiers": [
+    {
+      "id": "unplaced",
+      "label": "Unplaced card tray",
+      "kind": "unplaced",
+      "order": -1
+    },
+    {
+      "id": "tier-1",
+      "label": "Tier 1 (top)",
+      "kind": "ranked",
+      "order": 0
+    },
+    {
+      "id": "tier-2",
+      "label": "Tier 2",
+      "kind": "ranked",
+      "order": 1
+    },
+    {
+      "id": "tier-3",
+      "label": "Tier 3",
+      "kind": "ranked",
+      "order": 2
+    },
+    {
+      "id": "tier-4",
+      "label": "Tier 4",
+      "kind": "ranked",
+      "order": 3
+    },
+    {
+      "id": "tier-5",
+      "label": "Tier 5 (bottom)",
+      "kind": "ranked",
+      "order": 4
+    }
+  ],
+  "nodes": [
+    {
+      "id": "sg-interoceptive-insight",
+      "sourceKey": "sg-interoceptive-insight",
+      "title": "Interoceptive insight",
+      "description": "Metacognitive correspondence between interoceptive performance and perceived performance or confidence.",
+      "origin": "starter",
+      "sourceFrameworkId": "suksasilp-garfinkel-2022",
+      "tierId": "tier-1",
+      "order": 0,
+      "position": {
+        "x": 202,
+        "y": 286
+      },
+      "createdAt": "2026-07-16T09:47:25.807Z",
+      "updatedAt": "2026-07-16T09:47:25.807Z"
+    },
+    {
+      "id": "sg-attribution",
+      "sourceKey": "sg-attribution",
+      "title": "Attribution of interoceptive sensations",
+      "description": "Interpretation of interoceptive sensations and their causes, such as construing a sensation as threatening.",
+      "origin": "starter",
+      "sourceFrameworkId": "suksasilp-garfinkel-2022",
+      "tierId": "tier-1",
+      "order": 1,
+      "position": {
+        "x": 416,
+        "y": 286
+      },
+      "createdAt": "2026-07-16T09:47:25.807Z",
+      "updatedAt": "2026-07-16T09:47:25.807Z"
+    },
+    {
+      "id": "demo-b-prediction",
+      "sourceKey": null,
+      "title": "Interoceptive predictions",
+      "description": "Top-down predictions concerning expected internal bodily states.",
+      "origin": "participant",
+      "sourceFrameworkId": null,
+      "tierId": "tier-1",
+      "order": 2,
+      "position": {
+        "x": 630,
+        "y": 286
+      },
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    },
+    {
+      "id": "sg-self-report-beliefs",
+      "sourceKey": "sg-self-report-beliefs",
+      "title": "Self-report and interoceptive beliefs",
+      "description": "Conscious or implicit beliefs about interoceptive sensations, aptitude and experience, including questionnaires, confidence and prior beliefs.",
+      "origin": "starter",
+      "sourceFrameworkId": "suksasilp-garfinkel-2022",
+      "tierId": "tier-2",
+      "order": 0,
+      "position": {
+        "x": 202,
+        "y": 556
+      },
+      "createdAt": "2026-07-16T09:47:25.807Z",
+      "updatedAt": "2026-07-16T09:47:25.807Z"
+    },
+    {
+      "id": "sg-interoceptive-attention",
+      "sourceKey": "sg-interoceptive-attention",
+      "title": "Interoceptive attention",
+      "description": "Deliberate or habitual attention to internal bodily sensations, including its balance relative to exteroceptive attention.",
+      "origin": "starter",
+      "sourceFrameworkId": "suksasilp-garfinkel-2022",
+      "tierId": "tier-2",
+      "order": 1,
+      "position": {
+        "x": 416,
+        "y": 556
+      },
+      "createdAt": "2026-07-16T09:47:25.807Z",
+      "updatedAt": "2026-07-16T09:47:25.807Z"
+    },
+    {
+      "id": "sg-preconscious-impact",
+      "sourceKey": "sg-preconscious-impact",
+      "title": "Preconscious impact of afferent signals",
+      "description": "Effects of afferent fluctuations on central neural activity and on the processing of external information before conscious report.",
+      "origin": "starter",
+      "sourceFrameworkId": "suksasilp-garfinkel-2022",
+      "tierId": "tier-3",
+      "order": 0,
+      "position": {
+        "x": 202,
+        "y": 826
+      },
+      "createdAt": "2026-07-16T09:47:25.807Z",
+      "updatedAt": "2026-07-16T09:47:25.807Z"
+    },
+    {
+      "id": "sg-interoceptive-accuracy",
+      "sourceKey": "sg-interoceptive-accuracy",
+      "title": "Interoceptive accuracy",
+      "description": "Objective correspondence between measured physiological events and reported experience, usually assessed with behavioural tasks.",
+      "origin": "starter",
+      "sourceFrameworkId": "suksasilp-garfinkel-2022",
+      "tierId": "tier-3",
+      "order": 1,
+      "position": {
+        "x": 416,
+        "y": 826
+      },
+      "createdAt": "2026-07-16T09:47:25.807Z",
+      "updatedAt": "2026-07-16T09:47:25.807Z"
+    },
+    {
+      "id": "sg-neural-representation",
+      "sourceKey": "sg-neural-representation",
+      "title": "Neural representation",
+      "description": "Central nervous activity involved in interoceptive processing, including coupling between brain activity and afferent physiological signals.",
+      "origin": "starter",
+      "sourceFrameworkId": "suksasilp-garfinkel-2022",
+      "tierId": "tier-4",
+      "order": 0,
+      "position": {
+        "x": 202,
+        "y": 1096
+      },
+      "createdAt": "2026-07-16T09:47:25.807Z",
+      "updatedAt": "2026-07-16T09:47:25.807Z"
+    },
+    {
+      "id": "sg-afferent-signal-strength",
+      "sourceKey": "sg-afferent-signal-strength",
+      "title": "Strength of afferent signals",
+      "description": "The strength and character of peripheral signals conveying internal bodily states to the central nervous system.",
+      "origin": "starter",
+      "sourceFrameworkId": "suksasilp-garfinkel-2022",
+      "tierId": "tier-5",
+      "order": 0,
+      "position": {
+        "x": 202,
+        "y": 1366
+      },
+      "createdAt": "2026-07-16T09:47:25.807Z",
+      "updatedAt": "2026-07-16T09:47:25.807Z"
+    }
+  ],
+  "edges": [
+    {
+      "id": "B-1",
+      "source": "sg-afferent-signal-strength",
+      "target": "sg-neural-representation",
+      "strength": 4,
+      "confidence": 5,
+      "effect": "positive",
+      "rationale": "Stronger peripheral afference increases the available signal for central representation.",
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    },
+    {
+      "id": "B-2",
+      "source": "sg-neural-representation",
+      "target": "sg-interoceptive-accuracy",
+      "strength": 4,
+      "confidence": 3,
+      "effect": "positive",
+      "rationale": "Central representation constrains objective discrimination and report of bodily events.",
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    },
+    {
+      "id": "B-3",
+      "source": "sg-interoceptive-attention",
+      "target": "sg-interoceptive-accuracy",
+      "strength": 3,
+      "confidence": 4,
+      "effect": "context-dependent",
+      "rationale": "Attention can improve sampling but may also bias performance depending on task and prior beliefs.",
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    },
+    {
+      "id": "B-4",
+      "source": "sg-interoceptive-accuracy",
+      "target": "sg-interoceptive-insight",
+      "strength": 4,
+      "confidence": 4,
+      "effect": "positive",
+      "rationale": "Performance contributes to metacognitive correspondence when confidence is calibrated.",
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    },
+    {
+      "id": "B-5",
+      "source": "sg-self-report-beliefs",
+      "target": "sg-interoceptive-attention",
+      "strength": 4,
+      "confidence": 3,
+      "effect": "positive",
+      "rationale": "Beliefs about bodily aptitude and salience influence habitual allocation of attention.",
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    },
+    {
+      "id": "B-6",
+      "source": "demo-b-prediction",
+      "target": "sg-neural-representation",
+      "strength": 4,
+      "confidence": 4,
+      "effect": "context-dependent",
+      "rationale": "Predictions shape central representations through top-down signalling and precision weighting.",
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    },
+    {
+      "id": "B-7",
+      "source": "sg-neural-representation",
+      "target": "demo-b-prediction",
+      "strength": 4,
+      "confidence": 3,
+      "effect": "positive",
+      "rationale": "Prediction errors update higher-level expectations about bodily state.",
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    },
+    {
+      "id": "B-8",
+      "source": "sg-preconscious-impact",
+      "target": "sg-attribution",
+      "strength": 2,
+      "confidence": 2,
+      "effect": "context-dependent",
+      "rationale": "Preconscious modulation of external processing may alter later causal interpretation.",
+      "createdAt": "2026-07-16T09:47:25.805Z",
+      "updatedAt": "2026-07-16T09:47:25.805Z"
+    }
+  ],
+  "exportedAt": "2026-07-16T09:47:25.807Z",
+  "validation": {
+    "unplacedNodeCount": 0,
+    "customNodeCount": 1,
+    "edgeCount": 8,
+    "edgeRationalesMissing": 0
+  }
+}
