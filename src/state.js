@@ -2,6 +2,8 @@ import {
   APP_VERSION,
   CANVAS_WIDTH,
   DEFAULT_HIERARCHY_PROMPT,
+  DEFAULT_STUDY_TITLE,
+  DEFAULT_TIERS,
   NODE_HEIGHT,
   NODE_WIDTH,
   SCHEMA_NAME,
@@ -11,6 +13,7 @@ import {
   STORAGE_KEY,
   TIER_HEIGHT,
   TIER_LABEL_WIDTH,
+  UNPLACED_LABEL,
 } from './constants.js';
 
 export function createId(prefix = 'id') {
@@ -19,17 +22,23 @@ export function createId(prefix = 'id') {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function makeDefaultTiers(count = 5) {
-  const ranked = Array.from({ length: count }, (_, index) => ({
-    id: `tier-${index + 1}`,
-    label: `Tier ${index + 1}${index === 0 ? ' (top)' : index === count - 1 ? ' (bottom)' : ''}`,
+export function makeDefaultTiers(count = DEFAULT_TIERS.length) {
+  const definitions = count === DEFAULT_TIERS.length
+    ? DEFAULT_TIERS
+    : Array.from({ length: count }, (_, index) => ({
+      id: `tier-${index + 1}`,
+      label: `Tier ${index + 1}${index === 0 ? ' (top)' : index === count - 1 ? ' (bottom)' : ''}`,
+    }));
+  const ranked = definitions.map((tier, index) => ({
+    id: tier.id,
+    label: tier.label,
     kind: 'ranked',
     order: index,
   }));
   return [
     {
       id: 'unplaced',
-      label: 'Unplaced card tray',
+      label: UNPLACED_LABEL,
       kind: 'unplaced',
       order: -1,
     },
@@ -90,7 +99,7 @@ export function makeDefaultStudy() {
   const nodes = STARTER_CARDS.map((card, index) => ({
     ...card,
     origin: 'starter',
-    sourceFrameworkId: SOURCE_FRAMEWORK.id,
+    sourceFrameworkId: 'sourceFrameworkId' in card ? card.sourceFrameworkId : SOURCE_FRAMEWORK.id,
     tierId: 'unplaced',
     order: index,
     position: { x: 0, y: 0 },
@@ -103,7 +112,7 @@ export function makeDefaultStudy() {
     schemaVersion: SCHEMA_VERSION,
     appVersion: APP_VERSION,
     study: {
-      title: 'Hierarchical model of interoception',
+      title: DEFAULT_STUDY_TITLE,
       participantId: '',
       participantGroup: '',
       hierarchyPrompt: DEFAULT_HIERARCHY_PROMPT,
@@ -143,12 +152,12 @@ export function normaliseStudy(raw) {
 
   const rawTiers = Array.isArray(raw.tiers) ? raw.tiers : [];
   const rankedRaw = rawTiers.filter((tier) => tier?.kind !== 'unplaced' && tier?.id !== 'unplaced');
-  const rankedCount = Math.max(1, rankedRaw.length || 5);
-  const ranked = (rankedRaw.length ? rankedRaw : makeDefaultTiers(5).filter((t) => t.kind === 'ranked'))
+  const rankedCount = Math.max(1, rankedRaw.length || DEFAULT_TIERS.length);
+  const ranked = (rankedRaw.length ? rankedRaw : makeDefaultTiers().filter((t) => t.kind === 'ranked'))
     .map((tier, index) => normaliseTier(tier, index, rankedCount));
   const unplacedRaw = rawTiers.find((tier) => tier?.kind === 'unplaced' || tier?.id === 'unplaced');
   const tiers = [
-    normaliseTier(unplacedRaw || { id: 'unplaced', label: 'Unplaced card tray', kind: 'unplaced' }, ranked.length, ranked.length),
+    normaliseTier(unplacedRaw || { id: 'unplaced', label: UNPLACED_LABEL, kind: 'unplaced' }, ranked.length, ranked.length),
     ...ranked,
   ];
   const tierIds = new Set(tiers.map((tier) => tier.id));
@@ -178,7 +187,9 @@ export function normaliseStudy(raw) {
       title: String(node?.title || starter?.title || `Untitled card ${index + 1}`),
       description: String(node?.description || starter?.description || ''),
       origin,
-      sourceFrameworkId: origin === 'starter' ? SOURCE_FRAMEWORK.id : null,
+      sourceFrameworkId: origin === 'starter'
+        ? ('sourceFrameworkId' in (starter || {}) ? starter.sourceFrameworkId : SOURCE_FRAMEWORK.id)
+        : null,
       tierId,
       order: asFiniteNumber(node?.order, index),
       position,
@@ -203,10 +214,10 @@ export function normaliseStudy(raw) {
         target: String(edge.target),
         strength,
         confidence,
-        effect: ['positive', 'negative', 'context-dependent', 'unspecified'].includes(edge?.effect)
-          ? edge.effect
-          : 'unspecified',
-        rationale: String(edge?.rationale || ''),
+        context: String(edge?.context ?? edge?.description ?? edge?.rationale ?? ''),
+        ...(edge?.legacyEffect || (edge?.effect && edge.effect !== 'unspecified')
+          ? { legacyEffect: String(edge.legacyEffect || edge.effect) }
+          : {}),
         createdAt: String(edge?.createdAt || now),
         updatedAt: String(edge?.updatedAt || now),
       };
@@ -221,7 +232,7 @@ export function normaliseStudy(raw) {
     schemaVersion: SCHEMA_VERSION,
     appVersion: String(raw.appVersion || APP_VERSION),
     study: {
-      title: String(raw.study?.title || 'Hierarchical model of interoception'),
+      title: String(raw.study?.title || DEFAULT_STUDY_TITLE),
       participantId: String(raw.study?.participantId || ''),
       participantGroup: String(raw.study?.participantGroup || ''),
       hierarchyPrompt: String(raw.study?.hierarchyPrompt || DEFAULT_HIERARCHY_PROMPT),
@@ -266,9 +277,17 @@ export function exportPayload(study) {
       unplacedNodeCount: study.nodes.filter((node) => node.tierId === 'unplaced').length,
       customNodeCount: study.nodes.filter((node) => node.origin === 'participant').length,
       edgeCount: study.edges.length,
-      edgeRationalesMissing: study.edges.filter((edge) => !edge.rationale.trim()).length,
+      reciprocalPairCount: countReciprocalPairs(study.edges),
+      edgeContextsMissing: study.edges.filter((edge) => !edge.context?.trim()).length,
     },
   };
+}
+
+export function countReciprocalPairs(edges) {
+  const pairs = new Set(edges.map((edge) => `${edge.source}→${edge.target}`));
+  return edges.filter(
+    (edge) => edge.source < edge.target && pairs.has(`${edge.target}→${edge.source}`),
+  ).length;
 }
 
 export function safeFilename(value) {

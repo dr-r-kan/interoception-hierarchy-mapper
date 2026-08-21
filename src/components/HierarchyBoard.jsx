@@ -11,7 +11,7 @@ import {
 } from '@xyflow/react';
 import {
   CANVAS_WIDTH,
-  EFFECT_COLOURS,
+  CONNECTOR_COLOUR,
   NODE_HEIGHT,
   NODE_WIDTH,
   TIER_HEIGHT,
@@ -50,7 +50,7 @@ function ConceptCardNode({ data, selected }) {
 
       <div className="card-topline">
         <span className={`origin-badge ${data.origin === 'participant' ? 'custom' : 'starter'}`}>
-          {data.origin === 'participant' ? 'Added' : 'S&G 2022'}
+          {data.origin === 'participant' ? 'Added' : 'Default'}
         </span>
         {aggregate ? (
           <span className="aggregate-badge" title="Number of maps containing this card">
@@ -207,7 +207,7 @@ function BoardInner({
   const mappedEdges = useMemo(() => {
     const directedPairs = new Set(edges.map((edge) => `${edge.source}→${edge.target}`));
     return edges.map((edge) => {
-      const colour = EFFECT_COLOURS[edge.effect] || EFFECT_COLOURS.unspecified;
+      const colour = CONNECTOR_COLOUR;
       const route = routeHandles(flowNodeById.get(edge.source), flowNodeById.get(edge.target));
       const displayWeight = Number.isFinite(Number(edge.displayWeight))
         ? Number(edge.displayWeight)
