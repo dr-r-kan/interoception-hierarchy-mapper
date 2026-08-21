@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   APP_NAME,
+  APP_CONFIG,
   APP_VERSION,
-  EFFECT_OPTIONS,
+  CONNECTOR_TYPES,
   NODE_HEIGHT,
   NODE_WIDTH,
   SOURCE_FRAMEWORK,
   TIER_HEIGHT,
   TIER_LABEL_WIDTH,
+  THEME_KEY,
 } from './constants.js';
 import { normaliseLabel } from './aggregation.js';
 import {
   arrangeNodes,
+  countReciprocalPairs,
   createId,
   downloadStudy,
   loadSavedStudy,
@@ -27,8 +30,14 @@ function formatTime(date) {
   return date ? date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
 }
 
-function effectLabel(value) {
-  return EFFECT_OPTIONS.find((option) => option.value === value)?.label || value;
+function initialTheme() {
+  try {
+    const saved = globalThis.localStorage?.getItem(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch {
+    // Storage can be unavailable in privacy-restricted browser contexts.
+  }
+  return globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function nextPosition(study, tierId, excludingNodeId = null) {
@@ -111,8 +120,7 @@ function CardForm({ initial, existingTitles, onSubmit, onCancel }) {
 function EdgeForm({ sourceNode, targetNode, initial, onSubmit, onCancel }) {
   const [strength, setStrength] = useState(initial?.strength || 3);
   const [confidence, setConfidence] = useState(initial?.confidence || 3);
-  const [effect, setEffect] = useState(initial?.effect || 'unspecified');
-  const [rationale, setRationale] = useState(initial?.rationale || '');
+  const [context, setContext] = useState(initial?.context || '');
 
   return (
     <form
@@ -122,14 +130,15 @@ function EdgeForm({ sourceNode, targetNode, initial, onSubmit, onCancel }) {
         onSubmit({
           strength: Number(strength),
           confidence: Number(confidence),
-          effect,
-          rationale: rationale.trim(),
+          context: context.trim(),
         });
       }}
     >
       <div className="edge-direction-summary">
         <strong>{sourceNode.title}</strong>
-        <span aria-hidden="true">→</span>
+        <span aria-hidden="true">
+          {CONNECTOR_TYPES.find((connector) => connector.id === 'unidirectional')?.symbol || '→'}
+        </span>
         <strong>{targetNode.title}</strong>
       </div>
       <label className="range-field">
@@ -157,25 +166,17 @@ function EdgeForm({ sourceNode, targetNode, initial, onSubmit, onCancel }) {
         <small><span>Low</span><span>High</span></small>
       </label>
       <label>
-        <span>Effect</span>
-        <select value={effect} onChange={(event) => setEffect(event.target.value)}>
-          {EFFECT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        <span>Brief rationale</span>
+        <span>{APP_CONFIG.connection.contextLabel}</span>
         <textarea
-          value={rationale}
+          value={context}
           maxLength={1000}
           rows={5}
-          onChange={(event) => setRationale(event.target.value)}
-          placeholder="Why should this directed relation exist? Note mediators, conditions or uncertainty where relevant."
+          onChange={(event) => setContext(event.target.value)}
+          placeholder={APP_CONFIG.connection.contextPlaceholder}
         />
       </label>
       <p className="method-note">
-        A reverse relation is entered separately. This preserves asymmetric strength, confidence and rationale.
+        {CONNECTOR_TYPES.find((connector) => connector.id === 'bidirectional')?.description}
       </p>
       <div className="modal-actions">
         <button type="button" className="ghost-button" onClick={onCancel}>Cancel</button>
@@ -209,7 +210,7 @@ function SetupForm({ study, onSubmit, onCancel }) {
         event.preventDefault();
         onSubmit({
           study: {
-            title: title.trim() || 'Hierarchical model of interoception',
+            title: title.trim() || APP_CONFIG.app.studyTitle,
             participantId: participantId.trim(),
             participantGroup: participantGroup.trim(),
             hierarchyPrompt: hierarchyPrompt.trim(),
@@ -329,7 +330,7 @@ function MapInspector({
       <aside className="inspector-panel">
         <div className="inspector-heading">
           <div>
-            <span className="eyebrow">{selectedNode.origin === 'starter' ? 'Starter card' : 'Participant-added card'}</span>
+            <span className="eyebrow">{selectedNode.origin === 'starter' ? 'Default card' : 'Participant-added card'}</span>
             <h2>{selectedNode.title}</h2>
           </div>
           <button type="button" className="icon-button" onClick={onClear} aria-label="Clear selection">×</button>
@@ -397,10 +398,10 @@ function MapInspector({
         <dl className="metric-list">
           <div><dt>Strength</dt><dd>{selectedEdge.strength}/5</dd></div>
           <div><dt>Confidence</dt><dd>{selectedEdge.confidence}/5</dd></div>
-          <div><dt>Effect</dt><dd>{effectLabel(selectedEdge.effect)}</dd></div>
+          {selectedEdge.legacyEffect ? <div><dt>Legacy effect (imported)</dt><dd>{selectedEdge.legacyEffect}</dd></div> : null}
         </dl>
-        <h3>Rationale</h3>
-        <p>{selectedEdge.rationale || <span className="muted">No rationale supplied.</span>}</p>
+        <h3>{APP_CONFIG.connection.contextLabel}</h3>
+        <p>{selectedEdge.context || <span className="muted">No context supplied.</span>}</p>
         <div className="button-stack">
           <button type="button" className="secondary-button" onClick={() => onEditEdge(selectedEdge)}>Edit connection</button>
           <button type="button" className="ghost-button danger-text" onClick={() => onDeleteEdge(selectedEdge)}>Delete connection</button>
@@ -416,8 +417,8 @@ function MapInspector({
       <p>Drag cards between tiers. Select a card to inspect its definition, change its tier or begin a directed link.</p>
       <ol className="instruction-list">
         <li>Place all cards in the hierarchy.</li>
-        <li>Create directed links; add the reverse separately where appropriate.</li>
-        <li>Rate strength and confidence, then record a brief rationale.</li>
+        <li>Create one directed arrow at a time; add the reverse separately for a bidirectional relationship.</li>
+        <li>Rate strength and confidence, then record free-text context.</li>
         <li>Export the JSON file at the end.</li>
       </ol>
     </aside>
@@ -427,6 +428,7 @@ function MapInspector({
 export default function App() {
   const importInputRef = useRef(null);
   const [view, setView] = useState('map');
+  const [theme, setTheme] = useState(initialTheme);
   const [study, setStudy] = useState(loadSavedStudy);
   const [lastSaved, setLastSaved] = useState(null);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -435,6 +437,29 @@ export default function App() {
   const [linkSourceId, setLinkSourceId] = useState(null);
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState('');
+  const [focusMode, setFocusMode] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      globalThis.localStorage?.setItem(THEME_KEY, theme);
+    } catch {
+      // The theme still applies for this session when storage is unavailable.
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    if (!focusMode) return undefined;
+    const handleKey = (event) => {
+      if (event.key === 'Escape') setFocusMode(false);
+    };
+    document.body.classList.add('focus-active');
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.body.classList.remove('focus-active');
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [focusMode]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -467,14 +492,7 @@ export default function App() {
   const selectedEdge = study.edges.find((edge) => edge.id === selectedEdgeId) || null;
   const unplacedCount = study.nodes.filter((node) => node.tierId === 'unplaced').length;
   const customCount = study.nodes.filter((node) => node.origin === 'participant').length;
-  const reciprocalPairs = useMemo(() => {
-    const pairs = new Set(study.edges.map((edge) => `${edge.source}→${edge.target}`));
-    let count = 0;
-    for (const edge of study.edges) {
-      if (edge.source < edge.target && pairs.has(`${edge.target}→${edge.source}`)) count += 1;
-    }
-    return count;
-  }, [study.edges]);
+  const reciprocalPairs = useMemo(() => countReciprocalPairs(study.edges), [study.edges]);
 
   function clearSelection() {
     setSelectedNodeId(null);
@@ -581,7 +599,7 @@ export default function App() {
     commit((current) => {
       const unplaced = current.tiers.find((tier) => tier.kind === 'unplaced') || {
         id: 'unplaced',
-        label: 'Unplaced',
+        label: APP_CONFIG.app.unplacedLabel,
         kind: 'unplaced',
       };
       const rankedTiers = values.rankedTiers.map((tier, index) => ({
@@ -590,7 +608,7 @@ export default function App() {
         order: index,
         label: tier.label.trim() || `Tier ${index + 1}`,
       }));
-      const tiers = [{ ...unplaced, id: 'unplaced', label: unplaced.label || 'Unplaced card tray', kind: 'unplaced', order: -1 }, ...rankedTiers];
+      const tiers = [{ ...unplaced, id: 'unplaced', label: unplaced.label || APP_CONFIG.app.unplacedLabel, kind: 'unplaced', order: -1 }, ...rankedTiers];
       const validTierIds = new Set(tiers.map((tier) => tier.id));
       const nodes = current.nodes.map((node) => ({
         ...node,
@@ -608,7 +626,7 @@ export default function App() {
   }
 
   const mapPage = (
-    <main className="map-page">
+    <main className={`map-page ${focusMode ? 'is-focus-mode' : ''}`}>
       <section className="toolbar panel-card" aria-label="Map controls">
         <div className="button-row toolbar-primary">
           <button type="button" className="secondary-button" onClick={() => setModal({ type: 'setup' })}>Study setup</button>
@@ -630,6 +648,9 @@ export default function App() {
             onClick={() => commit((current) => ({ ...current, nodes: arrangeNodes(current.nodes, current.tiers) }))}
           >
             Auto-arrange
+          </button>
+          <button type="button" className="secondary-button" onClick={() => setFocusMode(true)}>
+            ⛶ Focus workspace
           </button>
         </div>
         <div className="button-row toolbar-data">
@@ -655,7 +676,7 @@ export default function App() {
             type="button"
             className="ghost-button danger-text"
             onClick={() => {
-              if (!window.confirm('Reset the map to the eight starter cards? This replaces the current autosave.')) return;
+              if (!window.confirm('Reset the map to the default cards? This replaces the current autosave.')) return;
               setStudy(makeDefaultStudy());
               clearSelection();
               setLinkMode(false);
@@ -676,8 +697,8 @@ export default function App() {
         <div className="compact-stats" aria-label="Map summary">
           <span><strong>{study.nodes.length}</strong> cards</span>
           <span><strong>{customCount}</strong> added</span>
-          <span><strong>{study.edges.length}</strong> directed links</span>
-          <span><strong>{reciprocalPairs}</strong> reciprocal pairs</span>
+          <span><strong>{study.edges.length}</strong> arrows</span>
+          <span><strong>{reciprocalPairs}</strong> bidirectional pairs</span>
           <span className={unplacedCount ? 'warning-stat' : 'complete-stat'}><strong>{unplacedCount}</strong> unplaced</span>
         </div>
       </section>
@@ -695,14 +716,21 @@ export default function App() {
         </section>
       ) : null}
 
-      <section className="map-layout">
+      <section className={`map-layout ${focusMode ? 'focus-workspace' : ''}`}>
         <div className="board-panel">
           <div className="board-status-bar">
             <div>
               Participant: <strong>{study.study.participantId || 'not set'}</strong>
               {study.study.participantGroup ? ` · ${study.study.participantGroup}` : ''}
             </div>
-            <div>Drag cards between bands; horizontal position is retained but not treated as a rank.</div>
+            <div className="board-status-actions">
+              <span>Drag cards between bands; horizontal position is not treated as a rank.</span>
+              {focusMode ? (
+                <button type="button" className="focus-exit-button" onClick={() => setFocusMode(false)}>
+                  Exit focus <kbd>Esc</kbd>
+                </button>
+              ) : null}
+            </div>
           </div>
           <HierarchyBoard
             tiers={study.tiers}
@@ -781,7 +809,6 @@ export default function App() {
         <div className="brand-block">
           <div className="brand-mark" aria-hidden="true">IH</div>
           <div>
-            <span className="eyebrow">Offline workshop prototype</span>
             <h1>{APP_NAME}</h1>
           </div>
         </div>
@@ -789,8 +816,20 @@ export default function App() {
           <button type="button" className={view === 'map' ? 'active' : ''} onClick={() => setView('map')}>Individual map</button>
           <button type="button" className={view === 'aggregate' ? 'active' : ''} onClick={() => setView('aggregate')}>Aggregate files</button>
         </nav>
-        <div className="save-status" title={`Application version ${APP_VERSION}`}>
-          <span className="save-dot" /> Autosaved locally {lastSaved ? `at ${formatTime(lastSaved)}` : ''}
+        <div className="header-actions">
+          <button
+            type="button"
+            className="theme-button"
+            onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
+            {theme === 'dark' ? 'Light' : 'Dark'}
+          </button>
+          <div className="save-status" title={`Application version ${APP_VERSION}`}>
+            <span className="save-dot" /> Autosaved locally {lastSaved ? `at ${formatTime(lastSaved)}` : ''}
+          </div>
         </div>
       </header>
 
@@ -853,7 +892,7 @@ export default function App() {
 
       <Modal
         open={modal?.type === 'edge'}
-        title={modal?.existing ? 'Edit directed connection' : 'Add directed connection'}
+        title={modal?.existing ? 'Edit connection' : 'Add connection'}
         onClose={() => setModal(null)}
       >
         {modal?.sourceNode && modal?.targetNode ? (

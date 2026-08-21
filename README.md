@@ -6,9 +6,9 @@ A local, browser-based workshop tool for eliciting hierarchical, directed and we
 
 The participant workflow is deliberately independent: each person constructs a map in their own browser, then exports one JSON file. An organiser can load all exported files into the same application to inspect an aggregate network and export node and edge tables.
 
-## Included starter cards
+## Included default cards
 
-The fixed starter ontology follows the eight dimensions in Table 1 of:
+The default set retains the eight dimensions in Table 1 of the source framework and adds appraisal as a separate card:
 
 > Suksasilp, C., & Garfinkel, S. N. (2022). *Towards a comprehensive assessment of interoception in a multi-dimensional framework*. Biological Psychology, 168, 108262. https://doi.org/10.1016/j.biopsycho.2022.108262
 
@@ -22,8 +22,9 @@ The cards are:
 6. Interoceptive insight
 7. Interoceptive attention
 8. Attribution of interoceptive sensations
+9. Appraisal of interoceptive sensations
 
-Definitions in the interface are concise paraphrases. Fixed cards have stable machine-readable identifiers, which prevents accidental label variation from breaking aggregation.
+Definitions in the interface are concise paraphrases. Default cards have stable machine-readable identifiers, which prevents accidental label variation from breaking aggregation. Attribution keeps its existing `sg-attribution` identifier; appraisal uses `interoceptive-appraisal`.
 
 ## Fastest way to run it
 
@@ -58,8 +59,8 @@ Do not open `dist/index.html` directly by double-clicking it. Modern browsers re
 1. Open **Study setup** and enter the pseudonymous participant code, optional expertise group, hierarchy instruction and tier labels.
 2. Drag cards from the **Unplaced card tray** into ranked tiers. Horizontal position is retained for legibility but is not interpreted as rank.
 3. Select **Connect cards**, then select a source card and a target card.
-4. Rate directed-link strength and confidence from 1–5, optionally classify the effect, and enter a brief rationale.
-5. Enter a reverse arrow separately where appropriate. Reciprocal arrows may therefore differ in strength, confidence, effect and rationale.
+4. Rate the arrow's strength and confidence from 1–5 and enter free-text context or description.
+5. Enter a reverse arrow separately where appropriate. A bidirectional relationship is therefore two arrows, and each direction may have different ratings and context.
 6. Add missing constructs with **Add card**. Added cards are visibly marked and remain distinguishable in the exported data.
 7. Select **Export JSON**. The browser downloads one self-contained participant file.
 
@@ -76,7 +77,8 @@ Open **Aggregate files** and select any number of exported participant JSON file
 - prevalence conditional on both endpoint cards being present;
 - mean and standard deviation of strength and confidence among endorsers;
 - prevalence-weighted mean strength;
-- modal effect classification and pooled rationales.
+- reciprocal endorsement count and prevalence;
+- pooled free-text connection context.
 
 The aggregate view can export:
 
@@ -102,7 +104,7 @@ Added cards are provisionally grouped only when their titles match after case, p
 
 ### Directed edges
 
-An edge from A to B is distinct from B to A. `prevalenceAll` uses all imported maps as the denominator. `prevalenceEligible` uses only maps containing both endpoint cards. For fixed-card edges these denominators will normally coincide; for links involving participant-added cards they may differ materially.
+An edge from A to B is distinct from B to A. A bidirectional relationship is stored unambiguously as two edge records, A→B and B→A. Reciprocal endorsement counts require both records to occur in the same participant map. `prevalenceAll` uses all imported maps as the denominator. `prevalenceEligible` uses only maps containing both endpoint cards. For fixed-card edges these denominators will normally coincide; for links involving participant-added cards they may differ materially.
 
 The displayed edge width is based on:
 
@@ -151,6 +153,87 @@ The main dependencies are React, Vite and `@xyflow/react` (React Flow). The appl
 
 The workflow in `.github/workflows/deploy-pages.yml` tests, builds and deploys the app whenever `main` changes. In the repository's **Settings → Pages**, set **Source** to **GitHub Actions**. The Vite build uses relative asset paths, so it works at the repository subpath without a custom domain or repository-specific configuration.
 
+## Reuse the mapper for another project
+
+All default cards, descriptions, tiers, the hierarchy instruction and connector wording live in [`config.json`](config.json). Duplicate or fork this repository, edit that file, then rebuild. No React changes are needed for ordinary content reuse.
+
+### Change a card or description
+
+Edit the matching object in `cards`:
+
+```json
+{
+  "id": "sg-attribution",
+  "title": "Attribution of interoceptive sensations",
+  "description": "A revised working definition."
+}
+```
+
+Keep `id` unchanged once participant files have been collected. Aggregation uses the ID, not the displayed title, to match default cards across files.
+
+### Add or remove a card
+
+Add another object to `cards` with a new ID:
+
+```json
+{
+  "id": "project-prediction-error",
+  "title": "Prediction error",
+  "description": "Mismatch between an expected and observed signal."
+}
+```
+
+To remove a default card, delete its complete object. Every card ID must be non-empty and unique. Use short, durable IDs containing letters, numbers and hyphens; do not recycle a removed ID for a different concept. Existing participant exports remain self-contained and can still be imported.
+
+### Change tiers and instructions
+
+Edit `app.studyTitle`, `app.hierarchyInstruction`, `app.unplacedLabel`, or the `tiers` array. Each tier needs a unique, stable `id` and a participant-facing `label`:
+
+```json
+"tiers": [
+  { "id": "strategic", "label": "Strategic" },
+  { "id": "operational", "label": "Operational" }
+]
+```
+
+Changing tier labels is safe. Avoid changing tier IDs during one collection round; although aggregate hierarchy positions are normalised, stable IDs make individual files easier to compare and audit.
+
+### Change connector wording
+
+`connectorTypes` documents the two supported patterns: one directed arrow, or a bidirectional relationship made from two opposite arrows. The app deliberately has no effect-type dropdown. You may change the participant-facing labels, descriptions, symbols and the unidirectional arrow colour, while keeping the IDs `unidirectional` and `bidirectional`:
+
+```json
+"connectorTypes": [
+  {
+    "id": "unidirectional",
+    "label": "One-way dependency",
+    "description": "Create one arrow from the source to the target.",
+    "symbol": "→",
+    "colour": "#2f81a7"
+  },
+  {
+    "id": "bidirectional",
+    "label": "Mutual dependency",
+    "description": "Create two arrows, one in each direction.",
+    "symbol": "↔"
+  }
+]
+```
+
+Edit `connection.contextLabel` and `connection.contextPlaceholder` to change the free-text prompt. Adding other connector IDs does not add new relationship behaviour; the data model intentionally remains directed arrows plus reciprocal pairs.
+
+### Validate, rebuild and redeploy
+
+After editing `config.json`:
+
+```bash
+npm ci
+npm test
+npm run build
+```
+
+Use `python serve.py` to check the rebuilt `dist` folder locally. Commit `config.json` and the rebuilt `dist` files, then push to `main`; the existing GitHub Pages workflow redeploys the same public URL automatically. In a fork, enable **Settings → Pages → Source: GitHub Actions** once before the first deployment.
+
 ## Data structure
 
 Each participant export contains:
@@ -160,10 +243,10 @@ Each participant export contains:
 - source-framework metadata;
 - tier definitions;
 - nodes, including origin, definition, tier and canvas position;
-- directed edges, including strength, confidence, effect and rationale;
+- directed edges, including strength, confidence and free-text context;
 - a small validation summary.
 
-The current schema identifier is `interoception-hierarchical-network`, version `1.0.0`.
+The current schema identifier is `interoception-hierarchical-network`, version `1.1.0`. Participant files created by app version `0.1.0` / schema version `1.0.0` remain importable: old `rationale` text becomes `context`, old effect values are retained as `legacyEffect`, and reciprocal arrows remain separate directed records.
 
 ## Research-use cautions
 
@@ -172,12 +255,12 @@ This is a working elicitation prototype, not a complete study protocol. Before d
 - the construct and intended meaning of hierarchy;
 - participant inclusion criteria and expertise reporting;
 - whether discussion occurs before or after independent mapping;
-- whether rationales are mandatory;
+- whether connection context is mandatory;
 - handling of missing/unplaced cards;
 - rules for reconciling added cards;
 - consensus thresholds and stopping criteria across rounds;
 - treatment of confidence ratings;
-- qualitative analysis of rationales;
+- qualitative analysis of connection context;
 - preregistration, consent, data governance and authorship arrangements.
 
 Participant codes and free text can still constitute research data. Use pseudonymous identifiers and handle exported files under the applicable ethics approval and institutional policy.

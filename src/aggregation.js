@@ -1,4 +1,4 @@
-import { STARTER_CARDS } from './constants.js';
+import { DEFAULT_TIERS, STARTER_CARDS } from './constants.js';
 import { arrangeNodes, makeDefaultTiers } from './state.js';
 
 export function normaliseLabel(value) {
@@ -120,17 +120,15 @@ export function aggregateStudies(studies) {
         participantIndexes: new Set(),
         strengths: [],
         confidences: [],
-        effects: [],
-        rationales: [],
+        contexts: [],
       };
       existing.participantIndexes.add(studyIndex);
       existing.strengths.push(Number(edge.strength));
       existing.confidences.push(Number(edge.confidence));
-      existing.effects.push(edge.effect || 'unspecified');
-      if (edge.rationale?.trim()) {
-        existing.rationales.push({
+      if (edge.context?.trim()) {
+        existing.contexts.push({
           participant,
-          text: String(edge.rationale).trim(),
+          text: String(edge.context).trim(),
         });
       }
       edgeAccumulators.set(edgeKey, existing);
@@ -166,12 +164,10 @@ export function aggregateStudies(studies) {
       const meanStrength = mean(record.strengths);
       const prevalenceAll = endorsementCount / studies.length;
       const prevalenceEligible = eligibleCount ? endorsementCount / eligibleCount : null;
-      const effectCounts = Object.fromEntries(
-        [...new Set(record.effects)].map((effect) => [
-          effect,
-          record.effects.filter((candidate) => candidate === effect).length,
-        ]),
-      );
+      const reverse = edgeAccumulators.get(`${record.targetKey}→${record.sourceKey}`);
+      const reciprocalEndorsementCount = reverse
+        ? [...record.participantIndexes].filter((index) => reverse.participantIndexes.has(index)).length
+        : 0;
       return {
         key: record.key,
         sourceKey: record.sourceKey,
@@ -185,9 +181,9 @@ export function aggregateStudies(studies) {
         meanConfidence: mean(record.confidences),
         sdConfidence: sampleSd(record.confidences),
         prevalenceWeightedStrength: meanStrength * prevalenceAll,
-        modalEffect: mode(record.effects) || 'unspecified',
-        effectCounts,
-        rationales: record.rationales,
+        reciprocalEndorsementCount,
+        reciprocalPrevalenceAll: reciprocalEndorsementCount / studies.length,
+        contexts: record.contexts,
       };
     })
     .sort((a, b) => b.prevalenceWeightedStrength - a.prevalenceWeightedStrength);
@@ -210,6 +206,8 @@ export function aggregateStudies(studies) {
         'Participant-added cards are provisionally matched by normalised exact title; semantic reconciliation is not performed.',
       edgePrevalence:
         'prevalenceAll uses all imported maps as denominator; prevalenceEligible uses only maps containing both endpoint cards.',
+      reciprocalEdges:
+        'A bidirectional relationship is represented by two directed edge records. Reciprocal counts require both directions in the same participant map.',
     },
   };
 }
@@ -220,7 +218,7 @@ export function buildAggregateMap(
     includeCustom = true,
     minimumCustomNominations = 1,
     minimumEdgePrevalence = 0,
-    tierCount = 5,
+    tierCount = DEFAULT_TIERS.length,
   } = {},
 ) {
   const tiers = makeDefaultTiers(tierCount).map((tier) => ({
@@ -269,8 +267,7 @@ export function buildAggregateMap(
       strength: record.meanStrength,
       displayWeight: record.prevalenceWeightedStrength,
       confidence: record.meanConfidence,
-      effect: record.modalEffect,
-      rationale: '',
+      context: '',
       label: `${Math.round(record.prevalenceAll * 100)}% · ${record.meanStrength.toFixed(1)}`,
       aggregate: record,
     }));
@@ -332,9 +329,9 @@ export function aggregateEdgesCsv(aggregate) {
       'mean_confidence',
       'sd_confidence',
       'prevalence_weighted_strength',
-      'modal_effect',
-      'effect_counts_json',
-      'rationales_json',
+      'reciprocal_endorsement_count',
+      'reciprocal_prevalence_all',
+      'contexts_json',
     ],
     ...aggregate.edges.map((edge) => [
       edge.key,
@@ -349,9 +346,9 @@ export function aggregateEdgesCsv(aggregate) {
       edge.meanConfidence,
       edge.sdConfidence,
       edge.prevalenceWeightedStrength,
-      edge.modalEffect,
-      JSON.stringify(edge.effectCounts),
-      JSON.stringify(edge.rationales),
+      edge.reciprocalEndorsementCount,
+      edge.reciprocalPrevalenceAll,
+      JSON.stringify(edge.contexts),
     ]),
   ];
   return rows.map((row) => row.map(csvEscape).join(',')).join('\n');

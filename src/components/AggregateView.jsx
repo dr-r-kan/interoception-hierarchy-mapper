@@ -110,15 +110,17 @@ function AggregateInspector({ selectedNode, selectedEdge, participantCount, onCl
             <dd>{formatNumber(record.prevalenceWeightedStrength)}</dd>
           </div>
           <div>
-            <dt>Modal effect</dt>
-            <dd>{record.modalEffect}</dd>
+            <dt>Reciprocal endorsements</dt>
+            <dd>
+              {record.reciprocalEndorsementCount}/{participantCount} ({Math.round(record.reciprocalPrevalenceAll * 100)}%)
+            </dd>
           </div>
         </dl>
-        <details open={record.rationales.length <= 4}>
-          <summary>Rationales ({record.rationales.length})</summary>
-          {record.rationales.length ? (
-            <div className="rationale-list">
-              {record.rationales.map((item, index) => (
+        <details open={record.contexts.length <= 4}>
+          <summary>Connection context ({record.contexts.length})</summary>
+          {record.contexts.length ? (
+            <div className="context-list">
+              {record.contexts.map((item, index) => (
                 <blockquote key={`${item.participant}-${index}`}>
                   <p>{item.text}</p>
                   <footer>{item.participant}</footer>
@@ -126,7 +128,7 @@ function AggregateInspector({ selectedNode, selectedEdge, participantCount, onCl
               ))}
             </div>
           ) : (
-            <p className="muted">No rationale was supplied for this connection.</p>
+            <p className="muted">No context was supplied for this connection.</p>
           )}
         </details>
       </aside>
@@ -137,7 +139,7 @@ function AggregateInspector({ selectedNode, selectedEdge, participantCount, onCl
     <aside className="inspector-panel empty-inspector">
       <span className="eyebrow">Aggregate inspection</span>
       <h2>Select a card or arrow</h2>
-      <p>Card selection shows hierarchy dispersion. Arrow selection shows prevalence, strength, confidence and pooled rationales.</p>
+      <p>Card selection shows hierarchy dispersion. Arrow selection shows prevalence, reciprocal endorsement, strength, confidence and pooled context.</p>
     </aside>
   );
 }
@@ -340,7 +342,7 @@ export default function AggregateView() {
         <div className="board-panel">
           <div className="board-status-bar">
             <div>
-              <strong>{map.nodes.length}</strong> visible cards · <strong>{map.edges.length}</strong> visible directed links
+              <strong>{map.nodes.length}</strong> visible cards · <strong>{map.edges.length}</strong> visible arrows
             </div>
             <div className="legend-inline">
               <span><i className="legend-line thin" /> low weighted strength</span>

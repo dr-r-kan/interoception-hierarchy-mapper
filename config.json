@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0.0",
+  "app": {
+    "name": "Interoceptive Hierarchy Mapper",
+    "studyTitle": "Hierarchical model of interoception",
+    "hierarchyInstruction": "Place components from the highest or most abstract level at the top to the lowest or most peripheral level at the bottom. Use the workshop definition of ‘hierarchy’; horizontal position within a tier is retained for legibility but is not analysed.",
+    "unplacedLabel": "Unplaced card tray"
+  },
+  "sourceFramework": {
+    "id": "suksasilp-garfinkel-2022",
+    "authors": "Suksasilp, C. & Garfinkel, S. N.",
+    "year": 2022,
+    "title": "Towards a comprehensive assessment of interoception in a multi-dimensional framework",
+    "journal": "Biological Psychology",
+    "volume": "168",
+    "article": "108262",
+    "doi": "10.1016/j.biopsycho.2022.108262",
+    "url": "https://doi.org/10.1016/j.biopsycho.2022.108262"
+  },
+  "tiers": [
+    { "id": "tier-1", "label": "Tier 1 (top)" },
+    { "id": "tier-2", "label": "Tier 2" },
+    { "id": "tier-3", "label": "Tier 3" },
+    { "id": "tier-4", "label": "Tier 4" },
+    { "id": "tier-5", "label": "Tier 5 (bottom)" }
+  ],
+  "cards": [
+    {
+      "id": "sg-neural-representation",
+      "title": "Neural representation",
+      "description": "Central nervous activity involved in interoceptive processing, including coupling between brain activity and afferent physiological signals."
+    },
+    {
+      "id": "sg-afferent-signal-strength",
+      "title": "Strength of afferent signals",
+      "description": "The strength and character of peripheral signals conveying internal bodily states to the central nervous system."
+    },
+    {
+      "id": "sg-preconscious-impact",
+      "title": "Preconscious impact of afferent signals",
+      "description": "Effects of afferent fluctuations on central neural activity and on the processing of external information before conscious report."
+    },
+    {
+      "id": "sg-interoceptive-accuracy",
+      "title": "Interoceptive accuracy",
+      "description": "Objective correspondence between measured physiological events and reported experience, usually assessed with behavioural tasks."
+    },
+    {
+      "id": "sg-self-report-beliefs",
+      "title": "Self-report and interoceptive beliefs",
+      "description": "Conscious or implicit beliefs about interoceptive sensations, aptitude and experience, including questionnaires, confidence and prior beliefs."
+    },
+    {
+      "id": "sg-interoceptive-insight",
+      "title": "Interoceptive insight",
+      "description": "Metacognitive correspondence between interoceptive performance and perceived performance or confidence."
+    },
+    {
+      "id": "sg-interoceptive-attention",
+      "title": "Interoceptive attention",
+      "description": "Deliberate or habitual attention to internal bodily sensations, including its balance relative to exteroceptive attention."
+    },
+    {
+      "id": "sg-attribution",
+      "title": "Attribution of interoceptive sensations",
+      "description": "Determining the cause of interoceptive sensations based on an individual’s prior and current internal and external context."
+    },
+    {
+      "id": "interoceptive-appraisal",
+      "title": "Appraisal of interoceptive sensations",
+      "description": "Determining the valence of interoceptive signals.",
+      "sourceFrameworkId": null
+    }
+  ],
+  "connectorTypes": [
+    {
+      "id": "unidirectional",
+      "label": "Unidirectional",
+      "description": "One directed arrow from the source card to the target card.",
+      "symbol": "→",
+      "colour": "#2f81a7"
+    },
+    {
+      "id": "bidirectional",
+      "label": "Bidirectional",
+      "description": "Two separately entered arrows, one in each direction, so each direction can have its own ratings and context.",
+      "symbol": "↔"
+    }
+  ],
+  "connection": {
+    "contextLabel": "Context / description",
+    "contextPlaceholder": "Describe why this relationship exists, including relevant conditions, mechanisms or uncertainty."
+  }
+}
