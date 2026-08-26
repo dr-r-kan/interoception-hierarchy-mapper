@@ -2,7 +2,9 @@
 
 A local, browser-based workshop tool for eliciting hierarchical, directed and weighted models of interoception. It is built in React and includes a pre-built copy, so participants do not need Node.js or internet access once the folder has been obtained.
 
+
 **Use the hosted mapper:** https://dr-r-kan.github.io/interoception-hierarchy-mapper/
+<img width="148" height="148" alt="image" src="https://github.com/user-attachments/assets/22ad20d5-a6a5-48af-858e-d70cb7c08b78" />
 
 The participant workflow is deliberately independent: each person constructs a map in their own browser, then exports one JSON file. An organiser can load all exported files into the same application to inspect an aggregate network and export node and edge tables.
 
